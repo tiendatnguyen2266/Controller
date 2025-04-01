@@ -27,7 +27,6 @@ bool receiveLoraData(String &receivedData) {
             }
             return true;
         }
-        return false;
     }
     return false;
 }
@@ -36,7 +35,18 @@ void processReceivedData(String &data) {
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, data);
     if (!error) {
-        relayControl(doc);
+        int pin = doc["Pin"];
+        int value = doc["Value"];
+        // Điều khiển relay theo biến nhận được
+        ControlRelay(doc);
+        // Gửi phản hồi cho Gateway
+        LoRa.beginPacket();
+        LoRa.print("{\"Pin\":");
+        LoRa.print(pin);
+        LoRa.print(",\"Status\":");
+        LoRa.print(value);
+        LoRa.print("}");
+        LoRa.endPacket();
     }
 }
 

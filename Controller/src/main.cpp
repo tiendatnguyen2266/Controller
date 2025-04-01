@@ -3,7 +3,7 @@
 #include "LoraModule.h"
 
 void setup() {
-  initRelays();
+  setup();
   LoraSetup();
 }
 
