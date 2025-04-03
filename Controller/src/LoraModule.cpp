@@ -32,21 +32,29 @@ bool receiveLoraData(String &receivedData) {
 }
 
 void processReceivedData(String &data) {
-    JsonDocument doc;
+    DynamicJsonDocument doc(256);
     DeserializationError error = deserializeJson(doc, data);
+    
     if (!error) {
         int pin = doc["Pin"];
         int value = doc["Value"];
-        // Điều khiển relay theo biến nhận được
-        ControlRelay(doc);
-        // Gửi phản hồi cho Gateway
-        LoRa.beginPacket();
-        LoRa.print("{\"Pin\":");
-        LoRa.print(pin);
-        LoRa.print(",\"Status\":");
-        LoRa.print(value);
-        LoRa.print("}");
-        LoRa.endPacket();
+        
+        // Đảm bảo pin nằm trong khoảng hợp lệ
+        if (pin >= 1 && pin <= NUM_RELAYS) {
+            ControlRelay(doc);
+            
+            // Gửi phản hồi dạng JSON
+            DynamicJsonDocument respDoc(64);
+            respDoc["Pin"] = pin;
+            respDoc["Status"] = value;
+            
+            String response;
+            serializeJson(respDoc, response);
+            
+            LoRa.beginPacket();
+            LoRa.print(response);
+            LoRa.endPacket();
+        }
     }
 }
 
